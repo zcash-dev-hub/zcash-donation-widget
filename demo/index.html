@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zcash-donation-widget — TESTNET demo</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+  code, .uri { word-break: break-all; }
+  .warn { background: #fff3cd; border: 1px solid #e0a800; padding: 0.75rem; border-radius: 0.5rem; }
+  canvas { border: 1px dashed #999; display: block; margin: 1rem 0; }
+  label { display: block; margin-top: 1rem; }
+  input { width: 100%; padding: 0.4rem; }
+  button { margin-top: 1rem; padding: 0.5rem 1rem; }
+</style>
+</head>
+<body>
+<h1>Donate with Zcash — TESTNET demo</h1>
+<p class="warn">
+  <strong>Testnet only.</strong> The address below is a clearly-labelled
+  <em>example</em> testnet Unified Address generated for this demo. It is not
+  funded and belongs to nobody. TAZ has no value. Never send mainnet ZEC.
+</p>
+
+<label>Amount (TAZ)
+  <input id="amount" value="0.01" inputmode="decimal" />
+</label>
+<label>Message (memo, max 512 bytes)
+  <input id="message" value="test-123" />
+</label>
+<button id="go">Generate payment request</button>
+
+<h2>Payment request</h2>
+<p>Recipient (example testnet UA):<br /><code id="address"></code></p>
+<p>ZIP-321 URI:<br /><span class="uri" id="uri"></span></p>
+<button id="copy">Copy URI</button>
+
+<h2>QR code</h2>
+<!--
+  QR rendering is intentionally NOT bundled: the package keeps a single
+  runtime dependency (@z-labs/zip321). This canvas is a placeholder.
+  To show a scannable QR, draw the URI above with your QR library of
+  choice, e.g. in your own app code:
+      import QRCode from "qrcode"; QRCode.toCanvas(canvas, uri);
+-->
+<canvas id="qr" width="220" height="220"></canvas>
+<p><em>QR placeholder — paste the URI into a testnet wallet, or render it
+with any QR library in your own app (see comment in this file).</em></p>
+
+<h2>Receipt</h2>
+<p>
+  Receipt detection needs a Unified Full Viewing Key and a lightwalletd
+  connection (see the README). It is not wired up in this static demo;
+  the watcher is covered by unit tests with a mocked lightwalletd.
+</p>
+
+<script type="module">
+  import { createDonationWidget } from "../dist/index.js";
+
+  // EXAMPLE testnet UA (synthetic, unfunded, belongs to nobody).
+  const EXAMPLE_UA =
+    "utest1qg4skyseyqnjudfugd99zkzlvekhg7uz3xgf08494jem4swgeltdme8t7tusqpcwz5wzx233qjqyul";
+
+  const widget = createDonationWidget({ address: EXAMPLE_UA });
+  const $ = (id) => document.getElementById(id);
+  const ctx = $("qr").getContext("2d");
+  ctx.font = "14px system-ui";
+  ctx.fillText("QR placeholder", 55, 105);
+  ctx.fillText("(see source)", 65, 125);
+
+  function render(req) {
+    $("address").textContent = req.address;
+    $("uri").textContent = req.uri;
+  }
+  render(widget.current());
+
+  $("go").addEventListener("click", () => {
+    try {
+      render(
+        widget.newDonation({
+          amount: $("amount").value || undefined,
+          message: $("message").value || undefined,
+        }),
+      );
+    } catch (e) {
+      alert(e.message);
+    }
+  });
+  $("copy").addEventListener("click", async () => {
+    await navigator.clipboard.writeText(widget.current().uri);
+    $("copy").textContent = "Copied ✓";
+    setTimeout(() => ($("copy").textContent = "Copy URI"), 1500);
+  });
+</script>
+</body>
+</html>

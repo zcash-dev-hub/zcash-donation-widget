@@ -1,0 +1,41 @@
+{
+  "name": "zcash-donation-widget",
+  "version": "0.1.0",
+  "description": "Embeddable shielded donation / tipping widget for Zcash TESTNET. Zero backend, no custody, no spending keys.",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "keywords": [
+    "zcash",
+    "testnet",
+    "zip-321",
+    "donations",
+    "shielded",
+    "widget"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@z-labs/zip321": "0.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
